@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["stack", "repo_layout", "commands", "quality_gates", "api_contract", "nfr_summary", "feature_slices"],
+  "properties": {
+    "stack": {
+      "type": "object",
+      "required": ["frontend", "backend", "db", "mobile_path"],
+      "properties": {
+        "frontend": { "type": "string" },
+        "backend": { "type": "string" },
+        "db": { "type": "string" },
+        "mobile_path": { "type": "string" }
+      }
+    },
+    "repo_layout": { "type": "array", "items": { "type": "string" } },
+    "commands": {
+      "type": "object",
+      "required": ["setup", "dev", "test", "lint", "build"],
+      "properties": {
+        "setup": { "type": "string" },
+        "dev": { "type": "string" },
+        "test": { "type": "string" },
+        "lint": { "type": "string" },
+        "build": { "type": "string" }
+      }
+    },
+    "quality_gates": { "type": "array", "items": { "type": "string" } },
+    "api_contract": {
+      "type": "object",
+      "required": ["openapi_path", "versioning"],
+      "properties": {
+        "openapi_path": { "type": "string" },
+        "versioning": { "type": "string" }
+      }
+    },
+    "nfr_summary": {
+      "type": "object",
+      "properties": {
+        "security": { "type": "string" },
+        "performance": { "type": "string" },
+        "privacy": { "type": "string" },
+        "offline": { "type": "string" }
+      }
+    },
+    "feature_slices": { "type": "array", "items": { "type": "string" } }
+  }
+}

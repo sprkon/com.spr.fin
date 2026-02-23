@@ -1,0 +1,46 @@
+{
+  "stack": {
+    "frontend": "React + TypeScript",
+    "backend": "Node.js + Express",
+    "db": "PostgreSQL",
+    "mobile_path": "Capacitor (future)"
+  },
+  "repo_layout": [
+    "frontend/",
+    "backend/",
+    "docs/",
+    ".github/",
+    "README.md"
+  ],
+  "commands": {
+    "setup": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "dev": "npm run dev:all",
+    "test": "npm test",
+    "lint": "npm run lint",
+    "build": "npm run build"
+  },
+  "quality_gates": [
+    "tests_pass",
+    "lint_pass",
+    "no_secrets",
+    "api_contract_updated"
+  ],
+  "api_contract": {
+    "openapi_path": "docs/api/openapi.yaml",
+    "versioning": "semantic versioning (major.minor.patch)"
+  },
+  "nfr_summary": {
+    "security": "OAuth 2.0 for authentication, HTTPS required, input validation on all endpoints",
+    "performance": "P95 response time < 500ms, support 1000 concurrent users",
+    "privacy": "GDPR compliant, data encrypted at rest",
+    "offline": "Planned for mobile phase with service workers"
+  },
+  "feature_slices": [
+    "health-check",
+    "user-authentication",
+    "core-feature-1",
+    "core-feature-2",
+    "integration-tests",
+    "observability"
+  ]
+}
