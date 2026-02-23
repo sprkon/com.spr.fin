@@ -1,0 +1,12 @@
+sequenceDiagram
+  actor U as User
+  participant W as Web UI
+  participant A as API
+  participant D as DB
+
+  U->>W: Perform core action
+  W->>A: Request (auth)
+  A->>D: Read/Write
+  D-->>A: Result
+  A-->>W: Response
+  W-->>U: UI update
