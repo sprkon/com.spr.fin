@@ -1,46 +1,50 @@
 {
   "stack": {
-    "frontend": "React + TypeScript",
-    "backend": "Node.js + Express",
-    "db": "PostgreSQL",
-    "mobile_path": "Capacitor (future)"
+    "frontend": "React 18 + TypeScript + TailwindCSS + PDF.js",
+    "backend": "Python 3.11 + FastAPI + pikepdf + pdfplumber",
+    "db": "PostgreSQL 14+",
+    "mobile_path": "Capacitor (wrap React web) or native with shared API"
   },
   "repo_layout": [
     "frontend/",
     "backend/",
     "docs/",
-    ".github/",
-    "README.md"
+    ".github/workflows/",
+    "README.md",
+    "docker-compose.yml"
   ],
   "commands": {
-    "setup": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "dev": "npm run dev:all",
-    "test": "npm test",
-    "lint": "npm run lint",
-    "build": "npm run build"
+    "setup": "npm install && cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "dev": "docker-compose up && (cd frontend && npm run dev) & (cd backend && uvicorn main:app --reload)",
+    "test": "cd backend && pytest && cd ../frontend && npm test",
+    "lint": "cd frontend && npm run lint && cd ../backend && pylint . && black --check .",
+    "build": "cd frontend && npm run build && cd ../backend && python -m pip install -r requirements.txt && docker build -t pdf-editor:latest ."
   },
   "quality_gates": [
     "tests_pass",
     "lint_pass",
     "no_secrets",
-    "api_contract_updated"
+    "api_contract_updated",
+    "pdf_integrity_verified"
   ],
   "api_contract": {
     "openapi_path": "docs/api/openapi.yaml",
-    "versioning": "semantic versioning (major.minor.patch)"
+    "versioning": "semantic versioning (v1, v2, etc. in URL path)"
   },
   "nfr_summary": {
-    "security": "OAuth 2.0 for authentication, HTTPS required, input validation on all endpoints",
-    "performance": "P95 response time < 500ms, support 1000 concurrent users",
-    "privacy": "GDPR compliant, data encrypted at rest",
-    "offline": "Planned for mobile phase with service workers"
+    "security": "JWT authentication, HTTPS enforced, S3 server-side encryption, no PDF content in logs, GDPR compliance (30-day retention)",
+    "performance": "P95 response < 5s per PDF (< 50MB), support 100 concurrent users, async processing for large files",
+    "privacy": "User data isolation, soft deletes, audit logs, encrypted at rest, no data sharing",
+    "offline": "Planned for mobile phase with local caching and sync when online"
   },
   "feature_slices": [
-    "health-check",
-    "user-authentication",
-    "core-feature-1",
-    "core-feature-2",
-    "integration-tests",
-    "observability"
+    "1-auth-jwt",
+    "2-document-upload-storage",
+    "3-text-extraction-preview",
+    "4-text-mapping-editor",
+    "5-pdf-replacement-engine",
+    "6-validation-diff-viewer",
+    "7-version-history-audit",
+    "8-error-handling-rollback"
   ]
 }

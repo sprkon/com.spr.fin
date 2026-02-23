@@ -1,19 +1,337 @@
 openapi: 3.0.0
 info:
-  title: API Contract
+  title: PDF Content Replacement API
   version: "1.0.0"
-  description: "API specification (to be updated by /api-contract skill)"
+  description: "API for uploading, modifying, and managing PDF documents with surgical text replacement"
 
 servers:
-  - url: http://localhost:3000/api
+  - url: http://localhost:8000/api/v1
     description: Development server
-  - url: https://api.example.com
+  - url: https://api.pdf-editor.com/api/v1
     description: Production server
 
-paths: {}
+paths:
+  /auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                properties:
+                  access_token: { type: string }
+                  token_type: { type: string }
+
+  /documents:
+    get:
+      summary: List user's documents
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+
+    post:
+      summary: Upload a new PDF document
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        400:
+          description: Invalid PDF or file too large
+
+  /documents/{documentId}:
+    get:
+      summary: Get document metadata
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+  /documents/{documentId}/content:
+    get:
+      summary: Get extracted text content
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Extracted text
+          content:
+            application/json:
+              schema:
+                properties:
+                  text: { type: string }
+                  page_count: { type: integer }
+                  pages: 
+                    type: array
+                    items:
+                      properties:
+                        page_number: { type: integer }
+                        content: { type: string }
+
+  /documents/{documentId}/replace:
+    post:
+      summary: Apply text replacements to PDF
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplacementRequest'
+      responses:
+        200:
+          description: Replacement successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplacementResult'
+        422:
+          description: Text not found in PDF
+
+  /documents/{documentId}/download:
+    get:
+      summary: Download modified PDF
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: PDF file
+          content:
+            application/pdf: {}
+
+  /documents/{documentId}/versions:
+    get:
+      summary: Get document version history
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Change history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChangeLog'
+
+  /documents/{documentId}/diff:
+    get:
+      summary: Compare two versions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: version1
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: version2
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Diff details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResult'
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string }
 
 components:
-  schemas: {}
+  schemas:
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        status:
+          type: string
+          enum: [pending, ready, processing, completed, error]
+        page_count:
+          type: integer
+        file_size_bytes:
+          type: integer
+        upload_timestamp:
+          type: string
+          format: date-time
+
+    ReplacementRequest:
+      type: object
+      required:
+        - mappings
+      properties:
+        mappings:
+          type: array
+          items:
+            type: object
+            required:
+              - original_text
+              - replacement_text
+            properties:
+              original_text:
+                type: string
+              replacement_text:
+                type: string
+              page_hints:
+                type: array
+                items:
+                  type: integer
+                description: Optional page numbers to target
+
+    ReplacementResult:
+      type: object
+      properties:
+        status:
+          type: string
+        modified_pdf_url:
+          type: string
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              old_text:
+                type: string
+              new_text:
+                type: string
+              count:
+                type: integer
+
+    ChangeLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        replacement_count:
+          type: integer
+        byte_diff_count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    DiffResult:
+      type: object
+      properties:
+        version1_id:
+          type: string
+          format: uuid
+        version2_id:
+          type: string
+          format: uuid
+        differences:
+          type: array
+          items:
+            type: object
+            properties:
+              original_text:
+                type: string
+              replacement_text:
+                type: string
+              occurrences:
+                type: integer
+
   securitySchemes:
     bearerAuth:
       type: http
