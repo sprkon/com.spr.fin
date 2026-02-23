@@ -1,27 +1,25 @@
 ---
 name: release-deploy
-description: Prepare app for production release. Manages versioning, final integration tests, deploy scripts, rollback runbooks, and post-deploy health checks.
-argument-hint: "[version number] [target environment]"
+description: Create deployment pipeline and release runbooks for web now and a clear future path for iOS/Android (wrapper or native). Adds environment config, build artifacts, and rollback strategy.
+argument-hint: "[target: vercel|netlify|aws|azure|gcp] [mobile path: capacitor|react-native|flutter]"
 ---
 
 # Release & Deploy Skill
 
-## Steps
-1. Read docs/architecture/HANDOFF.json and current deployment config.
-2. Verify:
-   - Version bump (tag or version file)
-   - All tests pass
-   - No secrets in build artifacts
-   - Build/docker image is clean
-3. Create:
-   - docs/runbooks/DEPLOY.md (deployment steps)
-   - docs/runbooks/ROLLBACK.md (rollback procedure)
-   - Smoke test checklist
-4. Execute deploy to staging (if available).
-5. Smoke test post-deployment (health, core flow).
+## Preconditions
+- Must read HANDOFF.json + ARCHITECTURE.md deployment section.
 
-## Output
-- docs/runbooks/DEPLOY.md
-- docs/runbooks/ROLLBACK.md
-- Release tag
-- Deployment verification checklist
+## Steps
+1. Web deployment:
+   - define env vars and secrets strategy
+   - configure CI/CD pipeline
+   - add staging + prod guidance
+2. Mobile-ready plan:
+   - document chosen approach (Capacitor/React Native/Flutter)
+   - define what must remain stable (API contract, auth flows)
+3. Write runbooks:
+   - docs/runbooks/RELEASE.md
+   - docs/runbooks/ROLLBACK.md
+
+## Definition of done
+- A fresh clone can deploy by following docs (no tribal knowledge)
