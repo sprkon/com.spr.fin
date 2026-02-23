@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph Client
+    web[Web UI]
+  end
+
+  subgraph Backend
+    api[API]
+  end
+
+  subgraph Data
+    db[(DB)]
+  end
+
+  web --> api
+  api --> db
